@@ -19,7 +19,10 @@
         "*.c": "c",
         "freertos.h": "c",
         "sht4x.h": "c",
-        "led_strip.h": "c"
+        "led_strip.h": "c",
+        "string.h": "c",
+        "event_groups.h": "c",
+        "wifihandler.h": "c"
     },
     "idf.portWin": "COM4",
     "idf.flashType": "UART"
