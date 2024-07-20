@@ -1,3 +1,7 @@
+#ifndef WIFIHANDLER_H
+#define WIFIHANDLER_H
+
+
 #define ESP_WIFI_SSID      "Michal_home_2_4"
 #define ESP_WIFI_PASS      "Jurek744"
 #define ESP_MAXIMUM_RETRY  10
@@ -10,3 +14,5 @@ static int s_retry_num = 0;
 extern const char *TAG;
 
 void wifi_init_sta(void);
+
+#endif //WIFIHANDLER_H
