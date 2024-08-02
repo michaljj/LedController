@@ -10,11 +10,8 @@
 #include "wifiHandler.h"
 #include "mqttHandler.h"
 #include "mqtt_client.h"
-
 #include <cJSON.h>
-#define TOPIC "homeassistant/light/12345/config"
 const char *TAG = "LED_Controller";
-char *payload_cha2;
 
 void app_main(void)
 {
@@ -28,24 +25,12 @@ void app_main(void)
     ESP_ERROR_CHECK(ret);
     ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
 
-    wifi_init_sta();
-    mqtt_app_start();
 
-    int msg_id;
-  
+    wifi_init_sta();
+    mqttHandler_AppStart();
+    
     for( ;; )
     {
-      if (discoverySend == true)
-      {
-        if (payload_cha2 == NULL)
-        {
-          payload_cha2 = esp_state_serialize(&esp_state);
-        }
-            printf("%s\n", payload_cha2);
-            msg_id = esp_mqtt_client_publish(client, TOPIC_STAT, payload_cha2, 0, 0, false);
-            ESP_LOGI(TAG, "sent state successful, msg_id=%d", msg_id);
-      }
-      
         vTaskDelay(10000 / portTICK_PERIOD_MS);
     }
 
