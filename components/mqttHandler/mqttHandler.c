@@ -17,6 +17,16 @@ static char* payload_cha = NULL;
 static esp_mqtt_client_handle_t client;
 
 
+esp_err_t mqttHandler_Publish(const char *data, const char *topic, int qos, int retain)
+{
+    if (data != NULL && topic != NULL)
+    {
+        int msg_id;
+        msg_id = esp_mqtt_client_publish(client, topic, data, 0, qos, retain);
+        ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
+    }
+    return ESP_OK;
+}
 
 static void mqttHandler_LogError(const char *message, int error_code)
 {
@@ -33,7 +43,7 @@ static esp_err_t mqttHandler_EventSubsctibedCbk(int MsgId, int CfgMsgId, int Cmd
         if (payload_cha != NULL)
         {
             int msg_id;
-            msg_id = esp_mqtt_client_publish(client, TOPIC_CFG, payload_cha, 0, 0, false);
+            msg_id = mqttHandler_Publish(payload_cha, TOPIC_CFG, 0, false);
             ESP_LOGI(TAG, "HA_DISCOVERY_SENT");
             free(payload_cha);
             return ESP_OK;
@@ -101,16 +111,6 @@ static void mqttHandler_EventHandler(void *handler_args, esp_event_base_t base, 
     }
 }
 
-esp_err_t mqttHandler_Publish(const char *data, const char *topic, int qos, int retain)
-{
-    if (data != NULL && topic != NULL)
-    {
-        int msg_id;
-        msg_id = esp_mqtt_client_publish(client, topic, data, 0, qos, retain);
-        ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
-    }
-    return ESP_OK;
-}
 
 void mqttHandler_AppStart(void)
 {
