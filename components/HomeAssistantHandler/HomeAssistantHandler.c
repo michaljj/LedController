@@ -1,11 +1,17 @@
 #include <stdio.h>
 #include "HomeAssistantHandler.h"
+#include "string.h"
+#include "math.h"
+
+static char* TAG = "HOMEASSISTANTHANDLER";
+
 
 static esp_state_t HomeAssistantHandler_State = {
+    .state = "ON",
     .brightness = 100,
     .red = 255,
     .green = 255,
-    .blue = 255,
+    .blue = 255
 };
 
 static esp_discovery_t HomeAssistantHandler_Discovery = {
@@ -73,24 +79,12 @@ static char *HomeAssistantHandler_StateSerialize(esp_state_t *state)
 {
     char *json = NULL;
     cJSON *root = cJSON_CreateObject();
-    cJSON_AddStringToObject(root, "state", "ON");
+    cJSON_AddStringToObject(root, "state", state->state);
     cJSON_AddNumberToObject(root, "brightness", state->brightness);
     cJSON *color = cJSON_AddObjectToObject(root, "color");
     cJSON_AddNumberToObject(color, "r", state->red);
     cJSON_AddNumberToObject(color, "g", state->green);
     cJSON_AddNumberToObject(color, "b", state->blue);
-    if (state->white) {
-        cJSON_AddNumberToObject(root, "white_value", state->white);
-    }
-
-    if (state->temp) {
-        cJSON_AddNumberToObject(root, "color_temp", state->temp);
-    }
-
-    if (state->effect) {
-        cJSON_AddNumberToObject(root, "effect", state->effect);
-    }
-
     json = cJSON_PrintUnformatted(root);
     cJSON_Delete(root);
 
@@ -128,9 +122,9 @@ char *HomeAssistantHandler_GetState()
     return state;
 }
 
-esp_err_t HomeAssistantHandler_SetState(esp_state_t* state_ptr, char* state)
+esp_err_t HomeAssistantHandler_SetState(char* statePayload)
 {
-    cJSON *stateJSON = cJSON_Parse(state);
+    cJSON *stateJSON = cJSON_Parse(statePayload);
     if (stateJSON == NULL)
     {
         const char *error_ptr = cJSON_GetErrorPtr();
@@ -140,18 +134,20 @@ esp_err_t HomeAssistantHandler_SetState(esp_state_t* state_ptr, char* state)
             return ESP_FAIL;
         }
     }
-    free(state);
+    free(statePayload);
+    cJSON *state = cJSON_GetObjectItemCaseSensitive(stateJSON, "state");
     cJSON *red = cJSON_GetObjectItemCaseSensitive(stateJSON, "red");
     cJSON *green = cJSON_GetObjectItemCaseSensitive(stateJSON, "green");
     cJSON *blue = cJSON_GetObjectItemCaseSensitive(stateJSON, "blue");
     cJSON *brightness = cJSON_GetObjectItemCaseSensitive(stateJSON, "brightness");
-    cJSON_SetNumberValue(red, state_ptr->red);
-    cJSON_SetNumberValue(green, state_ptr->green);
-    cJSON_SetNumberValue(blue, state_ptr->blue);
-    cJSON_SetNumberValue(brightness, state_ptr->brightness);
-    state = cJSON_PrintUnformatted(stateJSON);
+    cJSON_SetValuestring(state, HomeAssistantHandler_State.state);
+    cJSON_SetNumberValue(red, HomeAssistantHandler_State.red);
+    cJSON_SetNumberValue(green, HomeAssistantHandler_State.green);
+    cJSON_SetNumberValue(blue, HomeAssistantHandler_State.blue);
+    cJSON_SetNumberValue(brightness, HomeAssistantHandler_State.brightness);
+    statePayload = cJSON_PrintUnformatted(stateJSON);
 
-    if (state == NULL)
+    if (statePayload == NULL)
     {
         const char *error_ptr = cJSON_GetErrorPtr();
         if (error_ptr != NULL)
@@ -160,5 +156,60 @@ esp_err_t HomeAssistantHandler_SetState(esp_state_t* state_ptr, char* state)
             return ESP_FAIL;
         }
     }
+    cJSON_free(state);
+    cJSON_free(red);
+    cJSON_free(green);
+    cJSON_free(blue);
+    cJSON_free(brightness);
     return ESP_OK;
+}
+
+esp_err_t HomeAssistantHandler_HandleCmdMsg(char* data, int dataLen)
+{
+    cJSON *dataJSON = cJSON_ParseWithLength(data, dataLen);
+    cJSON *state = cJSON_GetObjectItemCaseSensitive(dataJSON, "state");
+    cJSON *brightness = cJSON_GetObjectItemCaseSensitive(dataJSON, "brightness");
+    cJSON *color = cJSON_GetObjectItemCaseSensitive(dataJSON, "color");
+
+
+
+    char *stateCh = cJSON_GetStringValue(state);
+    if (stateCh != NULL)
+    {
+        HomeAssistantHandler_State.state = stateCh;
+    }
+    double brightnessInt = cJSON_GetNumberValue(brightness);
+    if (brightnessInt != NAN)
+    {
+        HomeAssistantHandler_State.brightness = (int)brightnessInt;
+    }
+    if (color != NULL)
+    {
+        cJSON *red = cJSON_GetObjectItemCaseSensitive(color, "r");
+        cJSON *green = cJSON_GetObjectItemCaseSensitive(color, "g");
+        cJSON *blue = cJSON_GetObjectItemCaseSensitive(color, "b");
+        double redInt = cJSON_GetNumberValue(red);
+        if (redInt != NAN)
+        {
+            HomeAssistantHandler_State.red = (int)redInt;
+        }
+        double greenInt = cJSON_GetNumberValue(green);
+        if (greenInt != NAN)
+        {
+            HomeAssistantHandler_State.green = (int)greenInt;
+        }
+        double blueInt = cJSON_GetNumberValue(blue);
+        if (blueInt != NAN)
+        {
+            HomeAssistantHandler_State.blue = (int)blueInt;
+        }
+    }
+    
+
+    cJSON_free(dataJSON);
+    cJSON_free(state);
+    cJSON_free(brightness);
+    cJSON_free(color);
+    return ESP_OK;
+
 }

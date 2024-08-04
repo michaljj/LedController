@@ -11,7 +11,6 @@
 
 static EventGroupHandle_t s_wifi_event_group;
 static int s_retry_num = 0;
-extern const char *TAG;
 
 void wifi_init_sta(void);
 

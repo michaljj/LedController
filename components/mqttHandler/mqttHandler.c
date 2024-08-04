@@ -12,6 +12,7 @@
 #include "cJSON.h"
 #include "mqttHandler.h"
 
+static char* TAG = "MQTTHANDLER";
 
 static char* payload_cha = NULL;
 static esp_mqtt_client_handle_t client;
@@ -23,7 +24,6 @@ esp_err_t mqttHandler_Publish(const char *data, const char *topic, int qos, int 
     {
         int msg_id;
         msg_id = esp_mqtt_client_publish(client, topic, data, 0, qos, retain);
-        ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
     }
     return ESP_OK;
 }
@@ -65,6 +65,22 @@ static esp_err_t mqttHandler_EventSubsctibedCbk(int MsgId, int CfgMsgId, int Cmd
     
 }
 
+static esp_err_t mqttHandler_EventDataCbk(char* topic, int topicLen, char* data, int dataLen)
+{
+    if (0 == strncmp(topic, TOPIC_CMD, topicLen))
+    {
+        ESP_LOGI(TAG, "TOPIC_CFG=%.*s", topicLen, topic);
+        ESP_LOGI(TAG, "DATA=%.*s", dataLen, data);
+        HomeAssistantHandler_HandleCmdMsg(data, dataLen);
+        char* statePayload = HomeAssistantHandler_GetState();
+        HomeAssistantHandler_SetState(statePayload);
+        mqttHandler_Publish(statePayload, TOPIC_STAT, 0, false);
+        ESP_LOGI(TAG, "STATE=%s", statePayload);
+
+    }
+    return ESP_OK;
+}
+
 static void mqttHandler_EventHandler(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data)
 {
     ESP_LOGD(TAG, "Event dispatched from event loop base=%s, event_id=%d", base, (int)event_id);
@@ -92,8 +108,7 @@ static void mqttHandler_EventHandler(void *handler_args, esp_event_base_t base, 
         break;
     case MQTT_EVENT_DATA:
         ESP_LOGI(TAG, "MQTT_EVENT_DATA");
-        ESP_LOGI(TAG, "TOPIC_CFG=%.*s\r\n", event->topic_len, event->topic);
-        ESP_LOGI(TAG, "DATA=%.*s\r\n", event->data_len, event->data);
+        mqttHandler_EventDataCbk(event->topic, event->topic_len, event->data, event->data_len);
         break;
     case MQTT_EVENT_ERROR:
         ESP_LOGI(TAG, "MQTT_EVENT_ERROR");

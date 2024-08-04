@@ -4,13 +4,11 @@
 #include "esp_system.h"
 #include "cJSON.h"
 #include "esp_mac.h"
-
-
+#include "esp_log.h"
 
 #define TOPIC_CFG "homeassistant/light/LightCtrl/config"
 #define TOPIC_CMD "LedController/light/LightCtrl/set"
 #define TOPIC_STAT "LedController/light/LightCtrl/state"
-
 
 
 typedef struct {
@@ -35,21 +33,18 @@ typedef struct {
 
 typedef struct 
 {
-    bool power;
-    int white;
-    int temp;
+    char* state;
     int brightness;
     int red;
     int green;
     int blue;
-    int effect;
 } esp_state_t;
 
  
 char *HomeAssistantHandler_GetDiscovery();
 char *HomeAssistantHandler_GetState();
-esp_err_t HomeAssistantHandler_SetState(esp_state_t* state_ptr, char* state);
-
+esp_err_t HomeAssistantHandler_SetState(char* statePayload);
+esp_err_t HomeAssistantHandler_HandleCmdMsg(char* data, int dataLen);
 
 
 

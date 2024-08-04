@@ -8,6 +8,7 @@
 #include "esp_event.h"
 #include "wifiHandler.h"
 
+static char* TAG = "WIFIHANDLER";
 
 
 

@@ -11,7 +11,7 @@
 #include "mqttHandler.h"
 #include "mqtt_client.h"
 #include <cJSON.h>
-const char *TAG = "LED_Controller";
+static char* TAG = "LED_Controller";
 
 void app_main(void)
 {
@@ -23,12 +23,10 @@ void app_main(void)
       ret = nvs_flash_init();
     }
     ESP_ERROR_CHECK(ret);
-    ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
-
-
     wifi_init_sta();
     mqttHandler_AppStart();
-    
+    ESP_LOGI(TAG, "INIT FINISHED");
+
     for( ;; )
     {
         vTaskDelay(10000 / portTICK_PERIOD_MS);

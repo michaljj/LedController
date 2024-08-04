@@ -16,12 +16,7 @@
 
 
 
-extern const char *TAG;
-
-
-
 esp_err_t mqttPublish_Publish(const char *data, const char *topic, int qos, int retain);
-//esp_err_t mqttHandler_GetLastMessage(const char *data, const char *topic);
 
 void mqttHandler_AppStart(void);
 
