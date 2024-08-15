@@ -9,7 +9,7 @@
 #include "lwip/sys.h"
 #include "wifiHandler.h"
 #include "mqttHandler.h"
-#include "mqtt_client.h"
+#include "ledHandler.h"
 #include <cJSON.h>
 static char* TAG = "LED_Controller";
 
@@ -24,7 +24,8 @@ void app_main(void)
     }
     ESP_ERROR_CHECK(ret);
     wifi_init_sta();
-    mqttHandler_AppStart();
+    mqttHandler_Init();
+    ledHandler_Init();
     ESP_LOGI(TAG, "INIT FINISHED");
 
     for( ;; )

@@ -10,6 +10,7 @@
 #include "esp_log.h"
 #include "mqtt_client.h"
 #include "cJSON.h"
+#include "HomeAssistantHandler.h"
 #include "mqttHandler.h"
 
 static char* TAG = "MQTTHANDLER";
@@ -127,7 +128,7 @@ static void mqttHandler_EventHandler(void *handler_args, esp_event_base_t base, 
 }
 
 
-void mqttHandler_AppStart(void)
+void mqttHandler_Init(void)
 {
     esp_mqtt_client_config_t mqtt_cfg = {
         .broker.address.uri = CONFIG_BROKER_URL,

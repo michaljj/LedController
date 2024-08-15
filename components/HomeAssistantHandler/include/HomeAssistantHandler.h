@@ -1,10 +1,7 @@
 #ifndef HAHANDLER_H
 #define HAHANDLER_H
 
-#include "esp_system.h"
-#include "cJSON.h"
-#include "esp_mac.h"
-#include "esp_log.h"
+
 
 #define TOPIC_CFG "homeassistant/light/LightCtrl/config"
 #define TOPIC_CMD "LedController/light/LightCtrl/set"

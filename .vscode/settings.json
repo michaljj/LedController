@@ -30,7 +30,8 @@
         "homeassistanthandler.h": "c",
         "mqtthandler.h": "c",
         "sockets.h": "c",
-        "esp_system.h": "c"
+        "esp_system.h": "c",
+        "ledc.h": "c"
     },
     "idf.portWin": "COM4",
     "idf.flashType": "UART"

@@ -1,7 +1,13 @@
 #include <stdio.h>
-#include "HomeAssistantHandler.h"
+#include "esp_mac.h"
+#include "esp_log.h"
+#include "esp_system.h"
 #include "string.h"
 #include "math.h"
+#include "cJSON.h"
+#include "ledHandler.h"
+
+#include "HomeAssistantHandler.h"
 
 static char* TAG = "HOMEASSISTANTHANDLER";
 
@@ -176,12 +182,22 @@ esp_err_t HomeAssistantHandler_HandleCmdMsg(char* data, int dataLen)
     char *stateCh = cJSON_GetStringValue(state);
     if (stateCh != NULL)
     {
+        if (0 == strncmp(stateCh, "ON", 2))
+        {
+            ledHandler_SetOnOff(true);
+        }else if (0 == strncmp(stateCh, "OFF", 3))
+        {
+            ledHandler_SetOnOff(false);
+        }
+        
+        
         HomeAssistantHandler_State.state = stateCh;
     }
     double brightnessInt = cJSON_GetNumberValue(brightness);
-    if (brightnessInt != NAN)
+    if (brightnessInt != NAN && brightnessInt <= 255)
     {
         HomeAssistantHandler_State.brightness = (int)brightnessInt;
+        ledHandler_SetRGB(HomeAssistantHandler_State.red, HomeAssistantHandler_State.green, HomeAssistantHandler_State.blue, HomeAssistantHandler_State.brightness);
     }
     if (color != NULL)
     {
@@ -189,20 +205,21 @@ esp_err_t HomeAssistantHandler_HandleCmdMsg(char* data, int dataLen)
         cJSON *green = cJSON_GetObjectItemCaseSensitive(color, "g");
         cJSON *blue = cJSON_GetObjectItemCaseSensitive(color, "b");
         double redInt = cJSON_GetNumberValue(red);
-        if (redInt != NAN)
+        if (redInt != NAN && redInt <= 255)
         {
             HomeAssistantHandler_State.red = (int)redInt;
         }
         double greenInt = cJSON_GetNumberValue(green);
-        if (greenInt != NAN)
+        if (greenInt != NAN && greenInt <= 255)
         {
             HomeAssistantHandler_State.green = (int)greenInt;
         }
         double blueInt = cJSON_GetNumberValue(blue);
-        if (blueInt != NAN)
+        if (blueInt != NAN && blueInt <= 255)
         {
             HomeAssistantHandler_State.blue = (int)blueInt;
         }
+        ledHandler_SetRGB(HomeAssistantHandler_State.red, HomeAssistantHandler_State.green, HomeAssistantHandler_State.blue, HomeAssistantHandler_State.brightness);
     }
     
 
