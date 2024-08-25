@@ -6,6 +6,7 @@
 #define TOPIC_CFG "homeassistant/light/LightCtrl/config"
 #define TOPIC_CMD "LedController/light/LightCtrl/set"
 #define TOPIC_STAT "LedController/light/LightCtrl/state"
+#define TOPIC_HA_STATUS "homeassistant/status"
 
 
 typedef struct {

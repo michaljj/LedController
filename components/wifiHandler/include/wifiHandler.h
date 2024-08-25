@@ -9,9 +9,10 @@
 #define WIFI_CONNECTED_BIT BIT0
 #define WIFI_FAIL_BIT      BIT1
 
-static EventGroupHandle_t s_wifi_event_group;
-static int s_retry_num = 0;
 
-void wifi_init_sta(void);
+
+esp_err_t wifi_init_sta(void);
+void wifi_deinit_sta(void);
+
 
 #endif //WIFIHANDLER_H

@@ -107,7 +107,7 @@ char *HomeAssistantHandler_GetDiscovery()
         const char *error_ptr = cJSON_GetErrorPtr();
         if (error_ptr != NULL)
         {
-            fprintf(stderr, "Error before: %s\n", error_ptr);
+            ESP_LOGE(TAG, "Error before: %s\n", error_ptr);
         }
     }
     return discovery;
@@ -122,7 +122,7 @@ char *HomeAssistantHandler_GetState()
         const char *error_ptr = cJSON_GetErrorPtr();
         if (error_ptr != NULL)
         {
-            fprintf(stderr, "Error before: %s\n", error_ptr);
+            ESP_LOGE(TAG, "Error before: %s\n", error_ptr);
         }
     }
     return state;
@@ -136,7 +136,7 @@ esp_err_t HomeAssistantHandler_SetState(char* statePayload)
         const char *error_ptr = cJSON_GetErrorPtr();
         if (error_ptr != NULL)
         {
-            fprintf(stderr, "Error before: %s\n", error_ptr);
+            ESP_LOGE(TAG, "Error before: %s\n", error_ptr);
             return ESP_FAIL;
         }
     }
@@ -158,7 +158,7 @@ esp_err_t HomeAssistantHandler_SetState(char* statePayload)
         const char *error_ptr = cJSON_GetErrorPtr();
         if (error_ptr != NULL)
         {
-            fprintf(stderr, "Error before: %s\n", error_ptr);
+            ESP_LOGE(TAG, "Error before: %s\n", error_ptr);
             return ESP_FAIL;
         }
     }

@@ -31,7 +31,9 @@
         "mqtthandler.h": "c",
         "sockets.h": "c",
         "esp_system.h": "c",
-        "ledc.h": "c"
+        "ledc.h": "c",
+        "random": "c",
+        "cstring": "c"
     },
     "idf.portWin": "COM4",
     "idf.flashType": "UART"
