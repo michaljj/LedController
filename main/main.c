@@ -37,6 +37,7 @@ void app_main(void)
     {
       ESP_LOGI(TAG, "WIFI INIT FAILED");
       wifi_deinit_sta();
+      wifi_init_ap();
     }
     
 
