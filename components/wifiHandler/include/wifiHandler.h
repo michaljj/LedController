@@ -3,9 +3,9 @@
 #include "esp_wifi.h"
 
 
-#define ESP_WIFI_SSID_STA      "Michal_home_2_4a"
+#define ESP_WIFI_SSID_STA      "Michal_home_2_4a" //DBG
 #define ESP_WIFI_PASS_STA      "Jurek744"
-#define ESP_MAXIMUM_RETRY  10
+#define ESP_MAXIMUM_RETRY       1 //DBG
 
 
 #define ESP_WIFI_SSID_AP       "LEDControllerAP"

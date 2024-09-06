@@ -12,6 +12,7 @@
 #include "wifiHandler.h"
 #include "mqttHandler.h"
 #include "ledHandler.h"
+#include "httpServerHandler.h"
 #include <cJSON.h>
 static char* TAG = "LED_Controller";
 
@@ -38,6 +39,7 @@ void app_main(void)
       ESP_LOGI(TAG, "WIFI INIT FAILED");
       wifi_deinit_sta();
       wifi_init_ap();
+      (void)httpServerHandler_StartServer();
     }
     
 

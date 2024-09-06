@@ -9,6 +9,7 @@
 #include "esp_mac.h"
 #include "esp_event.h"
 #include "wifiHandler.h"
+#include "esp_netif.h"
 
 static char* TAG = "WIFIHANDLER";
 static EventGroupHandle_t s_wifi_event_group;
@@ -135,6 +136,9 @@ void wifi_init_ap(void)
     ESP_ERROR_CHECK(esp_event_loop_create_default());
     netif_default_wifi = esp_netif_create_default_wifi_ap();
 
+    esp_netif_ip_info_t ipInfo; 
+    esp_netif_get_ip_info(netif_default_wifi, &ipInfo);
+
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_wifi_init(&cfg));
 
@@ -165,6 +169,7 @@ void wifi_init_ap(void)
 
     ESP_LOGI(TAG, "wifi_init_softap finished. SSID:%s password:%s channel:%d",
              ESP_WIFI_SSID_AP, ESP_WIFI_PASS_AP, ESP_WIFI_WIFI_CHANNEL);
+    ESP_LOGI(TAG, "My IP: " IPSTR, IP2STR(&ipInfo.ip));
 }
 
 void wifi_deinit_ap(void)

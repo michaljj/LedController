@@ -33,7 +33,11 @@
         "esp_system.h": "c",
         "ledc.h": "c",
         "random": "c",
-        "cstring": "c"
+        "cstring": "c",
+        "stdio.h": "c",
+        "mdnshandler.h": "c",
+        "task.h": "c",
+        "esp_netif.h": "c"
     },
     "idf.portWin": "COM4",
     "idf.flashType": "UART"
