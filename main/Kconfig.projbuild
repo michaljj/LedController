@@ -1,0 +1,10 @@
+menu "LedController Configuration"
+
+    config LEDCTRL_SSID_MAX_LENGTH
+        int "Max SSID length"
+        default 32
+    config LEDCTRL_PASS_MAX_LENGTH
+        int "Max PASS length"
+        default 64
+
+endmenu

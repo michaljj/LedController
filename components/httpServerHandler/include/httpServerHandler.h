@@ -3,7 +3,8 @@
 
 #include "esp_http_server.h"
 
-httpd_handle_t httpServerHandler_StartServer();
+void httpServerHandler_StartServer(void);
+void httpServerHandler_StopServer(void);
 
 
 #endif //HTTPSERVERHANDLER_H

@@ -24,3 +24,8 @@ void mDNSHandler_StartMdnsService(uint16_t port)
 
     ESP_ERROR_CHECK(mdns_service_add(NULL, "_http", "_tcp", port, NULL, 0) );
 }
+
+void mDNSHandler_StopMdnsService(void)
+{
+    mdns_free();
+}

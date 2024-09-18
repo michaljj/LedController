@@ -10,8 +10,12 @@
 #include "esp_event.h"
 #include "wifiHandler.h"
 #include "esp_netif.h"
+#include "nvsHandler.h"
 
 static char* TAG = "WIFIHANDLER";
+
+static char wifiStaSSID[ESP_WIFI_MAX_SSID_LENGHT];
+static char wifiStaPWD[ESP_WIFI_MAX_PASS_LENGHT];
 static EventGroupHandle_t s_wifi_event_group;
 static esp_netif_t* netif_default_wifi;
 static esp_event_handler_instance_t instance_any_id;
@@ -44,6 +48,16 @@ static void event_handler_sta(void* arg, esp_event_base_t event_base,
 
 esp_err_t wifi_init_sta(void)
 {
+    nvsHandler_err_t nvsErr;
+    nvsErr = nvsHandler_readWifiPassword(wifiStaPWD);
+    nvsErr = nvsHandler_readWifiSSID(wifiStaSSID);
+    if (NVS_READ_OK != nvsErr)
+    {
+        ESP_LOGE(TAG, "SSID or password not in NVS");
+        return ESP_ERR_NOT_ALLOWED;
+    }
+    
+
     s_wifi_event_group = xEventGroupCreate();
 
     ESP_ERROR_CHECK(esp_event_loop_create_default());
@@ -64,12 +78,12 @@ esp_err_t wifi_init_sta(void)
 
     wifi_config_t wifi_sta_config = {
         .sta = {
-            .ssid = ESP_WIFI_SSID_STA,
-            .password = ESP_WIFI_PASS_STA,
             .threshold.authmode = WIFI_AUTH_OPEN,
             .sae_pwe_h2e = WPA3_SAE_PWE_BOTH,
         },
     };
+    strcpy((char*)&wifi_sta_config.sta.ssid, wifiStaSSID);
+    strcpy((char*)&wifi_sta_config.sta.password, wifiStaPWD);
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA) );
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_sta_config) );
     ESP_ERROR_CHECK(esp_wifi_start());
@@ -86,11 +100,11 @@ esp_err_t wifi_init_sta(void)
      * happened. */
     if (bits & WIFI_CONNECTED_BIT) {
         ESP_LOGI(TAG, "Connected to ap SSID:%s password:%s",
-                 ESP_WIFI_SSID_STA, ESP_WIFI_PASS_STA);
+                 wifiStaSSID, wifiStaPWD);
                  return ESP_OK;
     } else if (bits & WIFI_FAIL_BIT) {
         ESP_LOGI(TAG, "Failed to connect to SSID:%s, password:%s",
-                 ESP_WIFI_SSID_STA, ESP_WIFI_PASS_STA);
+                 wifiStaSSID, wifiStaPWD);
                  return ESP_FAIL;
                  //handle fallback
     } else {

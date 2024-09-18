@@ -37,7 +37,10 @@
         "stdio.h": "c",
         "mdnshandler.h": "c",
         "task.h": "c",
-        "esp_netif.h": "c"
+        "esp_netif.h": "c",
+        "httpserverhandler.h": "c",
+        "mainstatehandler.h": "c",
+        "nvshandler.h": "c"
     },
     "idf.portWin": "COM4",
     "idf.flashType": "UART"

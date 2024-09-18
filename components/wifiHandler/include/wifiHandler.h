@@ -2,11 +2,10 @@
 #define WIFIHANDLER_H
 #include "esp_wifi.h"
 
+#define ESP_WIFI_MAX_PASS_LENGHT CONFIG_LEDCTRL_PASS_MAX_LENGTH
+#define ESP_WIFI_MAX_SSID_LENGHT CONFIG_LEDCTRL_SSID_MAX_LENGTH
 
-#define ESP_WIFI_SSID_STA      "Michal_home_2_4a" //DBG
-#define ESP_WIFI_PASS_STA      "Jurek744"
 #define ESP_MAXIMUM_RETRY       1 //DBG
-
 
 #define ESP_WIFI_SSID_AP       "LEDControllerAP"
 #define ESP_WIFI_PASS_AP       ""
