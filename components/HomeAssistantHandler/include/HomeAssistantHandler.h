@@ -40,6 +40,7 @@ typedef struct
 
  
 char *HomeAssistantHandler_GetDiscovery();
+char *HomeAssistantHandler_GetDiscoveryTopic();
 char *HomeAssistantHandler_GetState();
 esp_err_t HomeAssistantHandler_SetState(char* statePayload);
 esp_err_t HomeAssistantHandler_HandleCmdMsg(char* data, int dataLen);

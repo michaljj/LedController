@@ -12,10 +12,13 @@
 #include "cJSON.h"
 #include "HomeAssistantHandler.h"
 #include "mqttHandler.h"
+#include "nvsHandler.h"
+
 
 static char* TAG = "MQTTHANDLER";
 
 static char* payload_cha = NULL;
+static char MQTTaddr[ESP_WIFI_MAX_MQTTADDR_LENGHT];
 static esp_mqtt_client_handle_t client;
 static msgIds_t msgIds = {0,0,0};
 
@@ -39,7 +42,9 @@ static esp_err_t mqttHandler_EventSubsctibedCbk(int MsgId)
         payload_cha = HomeAssistantHandler_GetDiscovery();
         if (payload_cha != NULL)
         {
-            ret = mqttHandler_Publish(payload_cha, TOPIC_CFG, 0, false);
+            char* CfgTopic = HomeAssistantHandler_GetDiscoveryTopic();
+            ESP_LOGI(TAG, "discovery topic: %s", CfgTopic);
+            ret = mqttHandler_Publish(payload_cha, CfgTopic, 0, false);
             ESP_LOGI(TAG, "DISCOVERY_SENT");
             free(payload_cha);
 
@@ -133,14 +138,24 @@ static void mqttHandler_EventHandler(void *handler_args, esp_event_base_t base, 
     }
 }
 
-
-void mqttHandler_Init(void)
+esp_err_t mqttHandler_Init(void)
 {
+    nvsHandler_err_t nvsErr;
+    nvsErr = nvsHandler_readMQTTaddr(MQTTaddr);
+    if (NVS_READ_OK != nvsErr)
+    {
+        ESP_LOGE(TAG, "MQTT broker addr not in NVS");
+        return ESP_ERR_NOT_ALLOWED;
+    }
+    esp_err_t ret = ESP_OK;
     esp_mqtt_client_config_t mqtt_cfg = {
-        .broker.address.uri = CONFIG_BROKER_URL,
+        .broker.address.uri = "",
     };
+    mqtt_cfg.broker.address.uri = malloc(sizeof(char) * (strlen(MQTTaddr) + 1));
+    strcpy(mqtt_cfg.broker.address.uri, MQTTaddr);
 
     client = esp_mqtt_client_init(&mqtt_cfg);
-    esp_mqtt_client_register_event(client, ESP_EVENT_ANY_ID, mqttHandler_EventHandler, NULL);
-    esp_mqtt_client_start(client);
+    ret = esp_mqtt_client_register_event(client, ESP_EVENT_ANY_ID, mqttHandler_EventHandler, NULL);
+    ret = esp_mqtt_client_start(client);
+    return ret;
 }

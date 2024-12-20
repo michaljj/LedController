@@ -4,6 +4,8 @@
 
 
 #define CONFIG_BROKER_URL "mqtt://hass:Jurek744@192.168.100.24"
+#define ESP_WIFI_MAX_MQTTADDR_LENGHT CONFIG_LEDCTRL_MQTT_MAX_LENGTH
+
 
 typedef struct
 {
@@ -16,6 +18,6 @@ typedef struct
 
 esp_err_t mqttPublish_Publish(const char *data, const char *topic, int qos, int retain);
 
-void mqttHandler_Init(void);
+esp_err_t mqttHandler_Init(void);
 
 #endif //MQTTHANDLER_H

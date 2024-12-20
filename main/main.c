@@ -24,14 +24,7 @@ mainState_t mainState = INIT_STA;
 void app_main(void)
 {
     esp_log_level_set("*", ESP_LOG_INFO);
-    //Initialize NVS
-    esp_err_t ret = ESP_OK;;
-    ret = nvs_flash_init();
-    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-      ESP_ERROR_CHECK(nvs_flash_erase());
-      ret = nvs_flash_init();
-    }
-    ESP_ERROR_CHECK(ret);
+    esp_err_t ret = ESP_OK;
     ESP_ERROR_CHECK(esp_netif_init());
     nvsHandler_InitNVS();
     for( ;; )
@@ -39,6 +32,7 @@ void app_main(void)
       switch (mainState)
       {
       case INIT_STA:
+        ret = ESP_OK;
         ret = wifi_init_sta();
         if(ESP_OK == ret)
         {
@@ -56,10 +50,24 @@ void app_main(void)
         }
         break;
       case INIT_CONTROLLER:
-        mqttHandler_Init();
-        ledHandler_Init();
-        ESP_LOGI(TAG, "INIT FINISHED");
-        mainState = IDLE;
+        ret = ESP_OK;
+        ret = mqttHandler_Init();
+        if(ESP_OK == ret)
+        {
+          ledHandler_Init();
+          mainState = IDLE;
+          ESP_LOGI(TAG, "INIT FINISHED");
+        }
+        else if(ESP_ERR_NOT_ALLOWED == ret)
+        {
+          mainState = DEINIT_STA;
+          ESP_LOGI(TAG, "MQTT INIT NO BROKER ADDRES");
+        }
+        else if(ESP_OK != ret && ESP_ERR_NOT_ALLOWED != ret)
+        {
+          mainState = DEINIT_STA;
+          ESP_LOGI(TAG, "MQTT INIT FAILED");
+        }
         break;
       case DEINIT_STA:
         wifi_deinit_sta(); 

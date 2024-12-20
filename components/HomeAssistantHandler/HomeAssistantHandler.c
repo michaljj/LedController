@@ -113,6 +113,24 @@ char *HomeAssistantHandler_GetDiscovery()
     return discovery;
 }
 
+char *HomeAssistantHandler_GetDiscoveryTopic()
+{
+    static char *discoveryTopic = NULL;
+    if (NULL == discoveryTopic)
+    {
+        char str[80];
+        char mac_char[19] = {0};
+        HomeAssistantHandler_GetUniqeIdFromMac(mac_char);
+        strcpy(str, "homeassistant/light/");
+        strcat(str, mac_char);
+        strcat(str, "/LightCtrl/config");
+        size_t strLen = strlen(str);
+        discoveryTopic = malloc(sizeof(char) * (strLen + 1));
+        strcpy(discoveryTopic, str);
+    }
+    return discoveryTopic;
+}
+
 char *HomeAssistantHandler_GetState()
 {
     char *state = NULL;

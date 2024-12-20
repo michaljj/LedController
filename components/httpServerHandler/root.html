@@ -9,15 +9,28 @@
     <title>LED_Controller</title>
   </head>
   <body>
-    <h2>Wi-Fi Config</h2>
-    <form action="/post" method="post">
+    <h2>Config</h2>
+    <form id="configForm" action="/post" method="post">
         <label for="ssid">SSID:</label>
-        <input type="text" id="ssid" name="ssid" value="" required>
+        <input type="text" id="ssid" name="ssid" value="">
 
         <label for="password">Password:</label>
-        <input type="password" id="password" name="password" value="" required>
+        <input type="password" id="password" name="password" value="">
+
+        <label for="mqtt">MQTT server:</label>
+        <input type="mqtt" id="mqtt" name="mqtt" value="">
 
         <input type="submit" name="Submit" value="Submit">
     </form>
+    <script>
+      document.getElementById("configForm").addEventListener("submit", function (event) {
+          const inputs = this.querySelectorAll("input[name]");
+          inputs.forEach(input => {
+              if (!input.value.trim()) {
+                  input.removeAttribute("name");
+              }
+          });
+      });
+  </script>
   </body>
 </html>

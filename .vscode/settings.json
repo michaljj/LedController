@@ -40,7 +40,8 @@
         "esp_netif.h": "c",
         "httpserverhandler.h": "c",
         "mainstatehandler.h": "c",
-        "nvshandler.h": "c"
+        "nvshandler.h": "c",
+        "ctype.h": "c"
     },
     "idf.portWin": "COM4",
     "idf.flashType": "UART"

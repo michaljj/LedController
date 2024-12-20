@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "httpServerHandler.h"
-
+#include <ctype.h>
 #include <string.h>
 #include <esp_log.h>
 #include <esp_http_server.h>
@@ -15,6 +15,27 @@ static httpd_handle_t httpServerHandle = NULL;
 extern const char root_start[] asm("_binary_root_html_start");
 extern const char root_end[] asm("_binary_root_html_end");
 
+
+static void httpServerHandler_UrlDecode(const char *src, char *dest) {
+    while (*src) {
+        if (*src == '%') {
+            if (isxdigit((unsigned char)src[1]) && isxdigit((unsigned char)src[2])) {
+                char hex[3] = { src[1], src[2], '\0' };
+                *dest++ = (char)strtol(hex, NULL, 16);
+                src += 3;
+            } else {
+                *dest++ = *src++;
+            }
+        } else if (*src == '+') {
+            *dest++ = ' ';
+            src++;
+        } else {
+            *dest++ = *src++;
+        }
+    }
+    *dest = '\0';
+}
+
 static esp_err_t httpServerHandler_GetHandler(httpd_req_t *req)
 {
     const uint32_t root_len = root_end - root_start;
@@ -26,15 +47,14 @@ static esp_err_t httpServerHandler_GetHandler(httpd_req_t *req)
     return ESP_OK;
 }
 
-static esp_err_t httpServerHandler_GetDataFromPost(const char* content, const char* key, const char* val)
+static esp_err_t httpServerHandler_GetDataFromPost(char* const content, const char* const key, char* const val)
 {
-    //ssid=Aadf&password=asdf&Submit=Submit
     int keyLength = strlen(key);
     if (0 != keyLength)
     {
     char* data = NULL;
     int contentLenght = strlen(content);
-    char* contentLoc = malloc(sizeof(char) * contentLenght);
+    char* contentLoc = malloc(sizeof(char) * (contentLenght + 1));
     strncpy(contentLoc, content, contentLenght);
         data = strtok(contentLoc, "=&");
         while (NULL != data)
@@ -74,6 +94,7 @@ esp_err_t httpServerHandler_PostHandler(httpd_req_t *req)
     char* content = malloc(req->content_len + 1);
     char* ssid = malloc(sizeof(char)*CONFIG_LEDCTRL_SSID_MAX_LENGTH);
     char* password = malloc(sizeof(char)*CONFIG_LEDCTRL_PASS_MAX_LENGTH);
+    char* mqtt = malloc(sizeof(char)*CONFIG_LEDCTRL_MQTT_MAX_LENGTH);
     int retRecv = httpd_req_recv(req, content, recv_size);
     if (retRecv <= 0) {  /* 0 return value indicates connection closed */
         /* Check if timeout occurred */
@@ -100,6 +121,15 @@ esp_err_t httpServerHandler_PostHandler(httpd_req_t *req)
     {
         ESP_LOGI(TAG, "Got Password from HTTP Post:%s", password);
         nvsWriteRet = nvsHandler_saveWifiPassword(password);
+    }
+    ret = httpServerHandler_GetDataFromPost(content, "mqtt", mqtt);
+    if (ESP_OK == ret)
+    {
+        ESP_LOGI(TAG, "Got MQTT broker addr from HTTP Post:%s", mqtt);
+        char mqttConverted[CONFIG_LEDCTRL_MQTT_MAX_LENGTH];
+        httpServerHandler_UrlDecode(mqtt, mqttConverted);
+        strcpy(mqtt, mqttConverted);
+        nvsWriteRet = nvsHandler_saveMQTTaddr(mqtt);
     }
     /* Send a simple response */
     if (NVS_WRITE_OK == nvsWriteRet && ESP_OK == ret)

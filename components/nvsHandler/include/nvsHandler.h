@@ -12,10 +12,12 @@ typedef enum{
 
 esp_err_t nvsHandler_InitNVS(void);
 
-nvsHandler_err_t nvsHandler_saveWifiPassword(const char* pass);
-nvsHandler_err_t nvsHandler_readWifiPassword(const char* pass);
-nvsHandler_err_t nvsHandler_saveWifiSSID(const char* ssid);
-nvsHandler_err_t nvsHandler_readWifiSSID(const char* ssid);
+nvsHandler_err_t nvsHandler_saveWifiPassword(char* const pass);
+nvsHandler_err_t nvsHandler_readWifiPassword(char* const pass);
+nvsHandler_err_t nvsHandler_saveWifiSSID(char* const ssid);
+nvsHandler_err_t nvsHandler_readWifiSSID(char* const ssid);
+nvsHandler_err_t nvsHandler_saveMQTTaddr(char* const MQTTaddr);
+nvsHandler_err_t nvsHandler_readMQTTaddr(char* const MQTTaddr);
 
 
 

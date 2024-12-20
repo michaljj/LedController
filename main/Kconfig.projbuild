@@ -6,5 +6,8 @@ menu "LedController Configuration"
     config LEDCTRL_PASS_MAX_LENGTH
         int "Max PASS length"
         default 64
+    config LEDCTRL_MQTT_MAX_LENGTH
+        int "Max PASS length"
+        default 64
 
 endmenu
