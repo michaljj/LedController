@@ -5,6 +5,9 @@
 #include "driver/ledc.h"
 #include "driver/gpio.h"
 #include "ledHandler.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "freertos/semphr.h"
 
 static char* TAG = "LEDHANDLER";
 
@@ -13,6 +16,19 @@ static char* TAG = "LEDHANDLER";
 static int redDuty = 0;
 static int greenDuty = 0;
 static int blueDuty = 0;
+SemaphoreHandle_t ledHandler_FadeSem;
+
+static IRAM_ATTR bool ledHandler_FadeEndEventCb(const ledc_cb_param_t *param, void *user_arg)
+{
+    BaseType_t taskAwoken = pdFALSE;
+
+    if (param->event == LEDC_FADE_END_EVT) {
+        SemaphoreHandle_t ledHandler_FadeSem_loc = (SemaphoreHandle_t) user_arg;
+        xSemaphoreGiveFromISR(ledHandler_FadeSem_loc, &taskAwoken);
+    }
+
+    return (taskAwoken == pdTRUE);
+}
 
 static int ledHandler_CalcDuty(int inVal, int brightness)
 {
@@ -73,20 +89,44 @@ void ledHandler_Init()
 
     ESP_ERROR_CHECK(gpio_config(&ledhandler_relay_gpio));
 
+    ESP_ERROR_CHECK(ledc_fade_func_install(0));
+    ledc_cbs_t ledHandler_FadeCallbacks = {
+        .fade_cb = ledHandler_FadeEndEventCb
+    };
+    ledHandler_FadeSem = xSemaphoreCreateCounting(LEDHANDLER_CHANNEL_MAX_NUM, 3);
+    if( ledHandler_FadeSem == NULL )
+    {
+        ESP_LOGE(TAG, "Error during semaphore creation!");
+    }
+    for (int ch = 0; ch < LEDHANDLER_CHANNEL_MAX_NUM; ch++) {
+        ESP_ERROR_CHECK(ledc_cb_register(LEDHANDLER_MODE, ch, &ledHandler_FadeCallbacks, (void *) ledHandler_FadeSem));
+    }
 }
 
 void ledHandler_SetRGB(int redVal,int greenVal, int blueVal, int brightness)
 {
-    redDuty = ledHandler_CalcDuty(redVal, brightness);
-    greenDuty = ledHandler_CalcDuty(greenVal, brightness);
-    blueDuty = ledHandler_CalcDuty(blueVal, brightness);
+    int ledDuty[3] = {0,0,0};
+    ledDuty[0] = ledHandler_CalcDuty(redVal, brightness);
+    ledDuty[1] = ledHandler_CalcDuty(greenVal, brightness);
+    ledDuty[2] = ledHandler_CalcDuty(blueVal, brightness);
 
-    ESP_ERROR_CHECK(ledc_set_duty(LEDHANDLER_MODE, LEDHANDLER_CHANNEL_RED, redDuty));
-    ESP_ERROR_CHECK(ledc_set_duty(LEDHANDLER_MODE, LEDHANDLER_CHANNEL_BLUE, greenDuty));
-    ESP_ERROR_CHECK(ledc_set_duty(LEDHANDLER_MODE, LEDHANDLER_CHANNEL_GREEN, blueDuty));
-    ESP_ERROR_CHECK(ledc_update_duty(LEDHANDLER_MODE, LEDHANDLER_CHANNEL_RED));
-    ESP_ERROR_CHECK(ledc_update_duty(LEDHANDLER_MODE, LEDHANDLER_CHANNEL_GREEN));
-    ESP_ERROR_CHECK(ledc_update_duty(LEDHANDLER_MODE, LEDHANDLER_CHANNEL_BLUE));
+    for (int i = 0; i < LEDHANDLER_CHANNEL_MAX_NUM; i++) {
+        xSemaphoreTake(ledHandler_FadeSem, portMAX_DELAY);
+    }
+
+    // ESP_ERROR_CHECK(ledc_set_duty(LEDHANDLER_MODE, LEDHANDLER_CHANNEL_RED, redDuty));
+    // ESP_ERROR_CHECK(ledc_set_duty(LEDHANDLER_MODE, LEDHANDLER_CHANNEL_BLUE, greenDuty));
+    // ESP_ERROR_CHECK(ledc_set_duty(LEDHANDLER_MODE, LEDHANDLER_CHANNEL_GREEN, blueDuty));
+    // ESP_ERROR_CHECK(ledc_update_duty(LEDHANDLER_MODE, LEDHANDLER_CHANNEL_RED));
+    // ESP_ERROR_CHECK(ledc_update_duty(LEDHANDLER_MODE, LEDHANDLER_CHANNEL_GREEN));
+    // ESP_ERROR_CHECK(ledc_update_duty(LEDHANDLER_MODE, LEDHANDLER_CHANNEL_BLUE));
+
+    for(int ch = 0; ch < LEDHANDLER_CHANNEL_MAX_NUM; ch++) 
+    {
+        ESP_ERROR_CHECK(ledc_set_fade_with_time(LEDHANDLER_MODE, ch, ledDuty[ch], LEDHANDLER_FADE_TIME));
+        ESP_ERROR_CHECK(ledc_fade_start(LEDHANDLER_MODE ,ch, LEDC_FADE_NO_WAIT));
+    }
+
 
     ESP_LOGI(TAG, "UPDATED RGB:%d,%d,%d,%d", redDuty, greenDuty, blueDuty, brightness);
 
@@ -94,5 +134,6 @@ void ledHandler_SetRGB(int redVal,int greenVal, int blueVal, int brightness)
 
 void ledHandler_SetOnOff(bool stateVal)
 {
-        gpio_set_level(LEDHANDLER_OUTPUT_IO_RELAY, (uint32_t)stateVal);
+        ESP_ERROR_CHECK(gpio_set_level(LEDHANDLER_OUTPUT_IO_RELAY, (uint32_t)stateVal));
+        
 }

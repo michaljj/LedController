@@ -13,6 +13,8 @@
 #define LEDHANDLER_CHANNEL_BLUE             LEDC_CHANNEL_2
 #define LEDHANDLER_DUTY_RES                 LEDC_TIMER_13_BIT // Set duty resolution to 13 bits
 #define LEDHANDLER_FREQUENCY                (4000) // Frequency in Hertz. Set frequency at 4 kHz
+#define LEDHANDLER_CHANNEL_MAX_NUM          3
+#define LEDHANDLER_FADE_TIME                100                
 
 void ledHandler_Init();
 void ledHandler_SetRGB(int redVal,int greenVal, int blueVal, int brightness);
