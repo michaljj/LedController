@@ -3,9 +3,6 @@
 
 
 
-#define TOPIC_CFG "homeassistant/light/LightCtrl/config"
-#define TOPIC_CMD "LedController/light/LightCtrl/set"
-#define TOPIC_STAT "LedController/light/LightCtrl/state"
 #define TOPIC_HA_STATUS "homeassistant/status"
 
 
@@ -15,11 +12,12 @@ typedef struct {
     char *name;
     char *unique_id;
     char *sw_ver;
+    char *hw_ver;
     char *manufacturer;
     char *model;
     char *discovery_topic;
-    char *state_topic;
-    char *set_topic;
+    char *stateTopic_aLed1;
+    char *setTopic_aLed1;
     bool brightness;
     bool color_temp;
     bool white_value;
@@ -27,7 +25,7 @@ typedef struct {
     bool effect;
     bool retain;
     bool optimistic;
-} esp_discovery_t;
+} HomeAssistantHandler_Discovery_t;
 
 typedef struct 
 {
@@ -36,14 +34,24 @@ typedef struct
     int red;
     int green;
     int blue;
-} esp_state_t;
+} HomeAssistantHandler_State_t;
+
+typedef struct
+{
+    char *HAStatusTopic;
+    char *discoveryTopic;
+    char *setTopic_aLed1;
+    char *stateTopic_aLed1;
+} HomeAssistantHandler_Topics_t;
 
  
+void HomeAssistantHandler_Init();
+HomeAssistantHandler_Topics_t *HomeAssistantHandler_GetTopics();
 char *HomeAssistantHandler_GetDiscovery();
-char *HomeAssistantHandler_GetDiscoveryTopic();
 char *HomeAssistantHandler_GetState();
 esp_err_t HomeAssistantHandler_SetState(char* statePayload);
 esp_err_t HomeAssistantHandler_HandleCmdMsg(char* data, int dataLen);
+
 
 
 

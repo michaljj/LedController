@@ -16,6 +16,7 @@
 #include "httpServerHandler.h"
 #include <cJSON.h>
 #include "nvsHandler.h"
+#include "HomeAssistantHandler.h"
 
 static char* TAG = "LED_Controller";
 
@@ -51,6 +52,7 @@ void app_main(void)
         break;
       case INIT_CONTROLLER:
         ret = ESP_OK;
+        HomeAssistantHandler_Init();
         ret = mqttHandler_Init();
         if(ESP_OK == ret)
         {

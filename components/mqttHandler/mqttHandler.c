@@ -20,6 +20,7 @@ static char* TAG = "MQTTHANDLER";
 static char* payload_cha = NULL;
 static char MQTTaddr[ESP_WIFI_MAX_MQTTADDR_LENGHT];
 static esp_mqtt_client_handle_t client;
+static HomeAssistantHandler_Topics_t* HATopics;
 static msgIds_t msgIds = {0,0,0};
 
 esp_err_t mqttHandler_Publish(const char *data, const char *topic, int qos, int retain)
@@ -42,7 +43,7 @@ static esp_err_t mqttHandler_EventSubsctibedCbk(int MsgId)
         payload_cha = HomeAssistantHandler_GetDiscovery();
         if (payload_cha != NULL)
         {
-            char* CfgTopic = HomeAssistantHandler_GetDiscoveryTopic();
+            char* CfgTopic = HATopics->discoveryTopic;
             ESP_LOGI(TAG, "discovery topic: %s", CfgTopic);
             ret = mqttHandler_Publish(payload_cha, CfgTopic, 0, false);
             ESP_LOGI(TAG, "DISCOVERY_SENT");
@@ -68,21 +69,21 @@ static esp_err_t mqttHandler_EventSubsctibedCbk(int MsgId)
 
 static esp_err_t mqttHandler_EventDataCbk(char* topic, int topicLen, char* data, int dataLen)
 {
-    if (0 == strncmp(topic, TOPIC_CMD, topicLen))
+    if (0 == strncmp(topic, HATopics->setTopic_aLed1, topicLen))
     {
         ESP_LOGI(TAG, "TOPIC_CFG=%.*s", topicLen, topic);
         ESP_LOGI(TAG, "DATA=%.*s", dataLen, data);
         HomeAssistantHandler_HandleCmdMsg(data, dataLen);
         char* statePayload = HomeAssistantHandler_GetState();
         HomeAssistantHandler_SetState(statePayload);
-        mqttHandler_Publish(statePayload, TOPIC_STAT, 0, false);
+        mqttHandler_Publish(statePayload, HATopics->stateTopic_aLed1, 0, false);
         ESP_LOGI(TAG, "STATE=%s", statePayload);
 
-    }else if (0 == strncmp(topic, TOPIC_HA_STATUS, topicLen))
+    }else if (0 == strncmp(topic, HATopics->HAStatusTopic, topicLen))
     {
         ESP_LOGI(TAG, "TOPIC_CFG=%.*s", topicLen, topic);
         ESP_LOGI(TAG, "DATA=%.*s", dataLen, data);
-    }else if ((0 == strncmp(topic, TOPIC_CFG, topicLen)) || (0 == strncmp(topic, TOPIC_STAT, topicLen)))
+    }else if ((0 == strncmp(topic, HATopics->discoveryTopic, topicLen)) || (0 == strncmp(topic, HATopics->stateTopic_aLed1, topicLen)))
     {
         //
     }else 
@@ -101,9 +102,9 @@ static void mqttHandler_EventHandler(void *handler_args, esp_event_base_t base, 
     esp_mqtt_client_handle_t client = event->client;
     switch ((esp_mqtt_event_id_t)event_id) {
     case MQTT_EVENT_CONNECTED:
-        msgIds.CfgSubMsgId = esp_mqtt_client_subscribe(client, TOPIC_CFG, 0);
-        msgIds.CmdSubMsgId = esp_mqtt_client_subscribe(client, TOPIC_CMD, 0);
-        msgIds.HaStatusSubMsgId = esp_mqtt_client_subscribe(client, TOPIC_HA_STATUS, 0);
+        msgIds.CfgSubMsgId = esp_mqtt_client_subscribe(client, HATopics->discoveryTopic, 0);
+        msgIds.CmdSubMsgId = esp_mqtt_client_subscribe(client, HATopics->setTopic_aLed1, 0);
+        msgIds.HaStatusSubMsgId = esp_mqtt_client_subscribe(client, HATopics->HAStatusTopic, 0);
         break;
     case MQTT_EVENT_DISCONNECTED:
         ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED");
@@ -157,5 +158,6 @@ esp_err_t mqttHandler_Init(void)
     client = esp_mqtt_client_init(&mqtt_cfg);
     ret = esp_mqtt_client_register_event(client, ESP_EVENT_ANY_ID, mqttHandler_EventHandler, NULL);
     ret = esp_mqtt_client_start(client);
+    HATopics = HomeAssistantHandler_GetTopics();
     return ret;
 }

@@ -11,8 +11,9 @@
 
 static char* TAG = "HOMEASSISTANTHANDLER";
 
+static HomeAssistantHandler_Topics_t* HomeAssistantHandler_Topics_ptr = NULL;
 
-static esp_state_t HomeAssistantHandler_State = {
+static HomeAssistantHandler_State_t HomeAssistantHandler_State = {
     .state = "ON",
     .brightness = 100,
     .red = 255,
@@ -20,14 +21,13 @@ static esp_state_t HomeAssistantHandler_State = {
     .blue = 255
 };
 
-static esp_discovery_t HomeAssistantHandler_Discovery = {
-        .name        = "LEDCtrl",
-        .model       = "test",
-        .sw_ver      = "0.0.1",
+static HomeAssistantHandler_Discovery_t HomeAssistantHandler_Discovery = {
+        .name        = "LedController",
+        .manufacturer = "Jurek electronics",
+        .model       = "MidiV1",
+        .sw_ver      = "0.1",
+        .hw_ver      = "0.1",
         .unique_id   = "LedController1",
-        .set_topic   = TOPIC_CMD,
-        .state_topic = TOPIC_STAT,
-        .discovery_topic = TOPIC_CFG,
         .schema      = "json",
         .platform    = "mqtt",
         .brightness  = true,
@@ -47,41 +47,108 @@ static void HomeAssistantHandler_GetUniqeIdFromMac(char* mac_char)
     sprintf(mac_char, "%02X%02X%02X%02X%02X%02X", mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
 }
 
-
-static char *HomeAssistantHandler_DiscoverySerialize(esp_discovery_t *discovery) 
+static char *HomeAssistantHandler_GetDiscoveryTopic()
 {
-    char *json = NULL;
-    cJSON *root = cJSON_CreateObject();
-    cJSON_AddStringToObject(root, "platform", discovery->platform);
-    cJSON_AddStringToObject(root, "schema", discovery->schema);
-    cJSON_AddStringToObject(root, "state_topic", discovery->state_topic);
-    cJSON_AddStringToObject(root, "command_topic", discovery->set_topic);
+    static char *discoveryTopic = NULL;
+    if (NULL == discoveryTopic)
+    {
+        char str[80];
+        char mac_char[19] = {0};
+        HomeAssistantHandler_GetUniqeIdFromMac(mac_char);
+        strcpy(str, "homeassistant/device/");
+        strcat(str, mac_char);
+        strcat(str, "/LightCtrl/config");
+        size_t strLen = strlen(str);
+        discoveryTopic = malloc(sizeof(char) * (strLen + 1));
+        strcpy(discoveryTopic, str);
+    }
+    return discoveryTopic;
+}
+
+static char *HomeAssistantHandler_GetStateTopic(char* entityId)
+{
+    static char *StateTopic = NULL;
+    if (NULL == StateTopic || NULL == strstr(StateTopic, entityId))
+    {
+        char str[80];
+        char mac_char[19] = {0};
+        HomeAssistantHandler_GetUniqeIdFromMac(mac_char);
+        strcpy(str, "LedController/");
+        strcat(str, mac_char);
+        strcat(str, "/");
+        strcat(str, entityId);
+        strcat(str, "/config");
+        size_t strLen = strlen(str);
+        StateTopic = malloc(sizeof(char) * (strLen + 1));
+        strcpy(StateTopic, str);
+    }
+    ESP_LOGI(TAG, "StateTopic: %s", StateTopic);
+    return StateTopic;
+}
+
+static char *HomeAssistantHandler_GetSetTopic(char* entityId)
+{
+    static char *SetTopic = NULL;
+    if (NULL == SetTopic || NULL == strstr(SetTopic, entityId))
+    {
+        char str[80];
+        char mac_char[19] = {0};
+        HomeAssistantHandler_GetUniqeIdFromMac(mac_char);
+        strcpy(str, "LedController/");
+        strcat(str, mac_char);
+        strcat(str, "/");
+        strcat(str, entityId);
+        strcat(str, "/set");
+        size_t strLen = strlen(str);
+        SetTopic = malloc(sizeof(char) * (strLen + 1));
+        strcpy(SetTopic, str);
+    }
+    ESP_LOGI(TAG, "SetTopic: %s", SetTopic);
+    return SetTopic;
+}
+
+static char *HomeAssistantHandler_DiscoverySerialize(HomeAssistantHandler_Discovery_t *discovery) 
+{
     char mac_char[19] = {0};
     HomeAssistantHandler_GetUniqeIdFromMac(mac_char);
-    cJSON_AddStringToObject(root, "unique_id", mac_char);
-    cJSON_AddBoolToObject(root, "brightness", discovery->brightness);
-    cJSON_AddBoolToObject(root, "white_value", discovery->white_value);
+    char *json = NULL;
+    cJSON *root = cJSON_CreateObject();
+
+    //dev
+    cJSON *dev = cJSON_AddObjectToObject(root, "dev");
+    cJSON *identifiers = cJSON_AddArrayToObject(dev, "ids");
+    cJSON_AddItemToArray(identifiers, cJSON_CreateString(mac_char));
+    cJSON_AddStringToObject(dev, "name", discovery->name);
+    cJSON_AddStringToObject(dev, "mf", discovery->manufacturer);
+    cJSON_AddStringToObject(dev, "model", discovery->model);
+    cJSON_AddStringToObject(dev, "sw", discovery->sw_ver);
+    cJSON_AddStringToObject(dev, "sn", mac_char);
+    cJSON_AddStringToObject(dev, "hw", discovery->hw_ver);
+    //orig
+    cJSON *orig = cJSON_AddObjectToObject(root, "o");
+    cJSON_AddStringToObject(orig, "name", discovery->name);
+    //cmps
+    cJSON *cmps = cJSON_AddObjectToObject(root, "cmps");
+    //aLed1 -> cmps
+    cJSON *aLed1 = cJSON_AddObjectToObject(cmps, "aLed1");
+    cJSON_AddStringToObject(aLed1, "p", "light");
+    cJSON_AddStringToObject(aLed1, "unique_id", "aLed1");
+    cJSON_AddStringToObject(aLed1, "schema", discovery->schema);
+    cJSON_AddBoolToObject(aLed1, "brightness", discovery->brightness);
     cJSON *supp_color_modes = cJSON_CreateArray();
     cJSON_AddItemToArray(supp_color_modes, cJSON_CreateString("rgb"));
-    cJSON_AddItemToObject(root, "supported_color_modes", supp_color_modes);
-    cJSON_AddBoolToObject(root, "effect"     , discovery->effect);
-    cJSON_AddBoolToObject(root, "retain"     , discovery->retain);
-    cJSON_AddBoolToObject(root, "optimistic" , discovery->optimistic);
-    cJSON *dev = cJSON_AddObjectToObject(root, "device");
-    cJSON_AddStringToObject(dev, "name", discovery->name);
-    cJSON_AddStringToObject(dev, "model", discovery->model);
-    cJSON_AddStringToObject(dev, "sw_version", discovery->sw_ver);
-    cJSON_AddStringToObject(dev, "manufacturer", discovery->manufacturer);
-    cJSON *identifiers = cJSON_AddArrayToObject(dev, "identifiers");
-    cJSON_AddItemToArray(identifiers, cJSON_CreateString("01light"));
+    cJSON_AddItemToObject(aLed1, "supported_color_modes", supp_color_modes);
+    cJSON_AddStringToObject(aLed1, "state_topic", discovery->stateTopic_aLed1);
+    cJSON_AddStringToObject(aLed1, "command_topic", discovery->setTopic_aLed1);
 
     json = cJSON_PrintUnformatted(root);
+    ESP_LOGI(TAG, "disc payload: %s", json); //DEBUG
     cJSON_Delete(root);
 
     return json;
 }
 
-static char *HomeAssistantHandler_StateSerialize(esp_state_t *state) 
+static char *HomeAssistantHandler_StateSerialize(HomeAssistantHandler_State_t *state) 
 {
     char *json = NULL;
     cJSON *root = cJSON_CreateObject();
@@ -97,6 +164,23 @@ static char *HomeAssistantHandler_StateSerialize(esp_state_t *state)
     return json;
 }
 
+void HomeAssistantHandler_Init()
+{
+    HomeAssistantHandler_Topics_ptr = malloc(sizeof(HomeAssistantHandler_Topics_t));
+    HomeAssistantHandler_Topics_ptr->discoveryTopic = strdup(HomeAssistantHandler_GetDiscoveryTopic());
+    HomeAssistantHandler_Topics_ptr->HAStatusTopic = strdup(TOPIC_HA_STATUS);
+    HomeAssistantHandler_Topics_ptr->setTopic_aLed1 = strdup(HomeAssistantHandler_GetSetTopic("aLed1"));
+    HomeAssistantHandler_Topics_ptr->stateTopic_aLed1 = strdup(HomeAssistantHandler_GetStateTopic("aLed1"));
+    HomeAssistantHandler_Discovery.setTopic_aLed1 = HomeAssistantHandler_Topics_ptr->setTopic_aLed1;
+    HomeAssistantHandler_Discovery.stateTopic_aLed1 = HomeAssistantHandler_Topics_ptr->stateTopic_aLed1;
+    HomeAssistantHandler_Discovery.discovery_topic = HomeAssistantHandler_Topics_ptr->discoveryTopic;
+
+}
+
+HomeAssistantHandler_Topics_t *HomeAssistantHandler_GetTopics()
+{
+    return HomeAssistantHandler_Topics_ptr;
+}
 
 char *HomeAssistantHandler_GetDiscovery()
 {
@@ -113,23 +197,6 @@ char *HomeAssistantHandler_GetDiscovery()
     return discovery;
 }
 
-char *HomeAssistantHandler_GetDiscoveryTopic()
-{
-    static char *discoveryTopic = NULL;
-    if (NULL == discoveryTopic)
-    {
-        char str[80];
-        char mac_char[19] = {0};
-        HomeAssistantHandler_GetUniqeIdFromMac(mac_char);
-        strcpy(str, "homeassistant/light/");
-        strcat(str, mac_char);
-        strcat(str, "/LightCtrl/config");
-        size_t strLen = strlen(str);
-        discoveryTopic = malloc(sizeof(char) * (strLen + 1));
-        strcpy(discoveryTopic, str);
-    }
-    return discoveryTopic;
-}
 
 char *HomeAssistantHandler_GetState()
 {
