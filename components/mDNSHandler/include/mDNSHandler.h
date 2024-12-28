@@ -7,5 +7,4 @@
 void mDNSHandler_StartMdnsService(uint16_t port);
 void mDNSHandler_StopMdnsService(void);
 
-
-#endif //MDNSHANDLER_H
+#endif // MDNSHANDLER_H

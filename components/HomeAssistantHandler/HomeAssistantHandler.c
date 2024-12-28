@@ -158,7 +158,7 @@ static char *HomeAssistantHandler_DiscoverySerialize(HomeAssistantHandler_Discov
     cJSON_AddItemToObject(dLed2, "supported_color_modes", supp_color_modes_dLed2);
     cJSON_AddStringToObject(dLed2, "state_topic", discovery->stateTopic_dLed2);
     cJSON_AddStringToObject(dLed2, "command_topic", discovery->setTopic_dLed2);
-    
+
     json = cJSON_PrintUnformatted(root);
     ESP_LOGI(TAG, "disc payload: %s", json); // DEBUG
     cJSON_Delete(root);
@@ -193,19 +193,16 @@ void HomeAssistantHandler_Init()
     HomeAssistantHandler_Topics_ptr->stateTopic_aLed1 = strdup(HomeAssistantHandler_GetStateTopic("aLed1"));
     HomeAssistantHandler_Discovery.setTopic_aLed1 = HomeAssistantHandler_Topics_ptr->setTopic_aLed1;
     HomeAssistantHandler_Discovery.stateTopic_aLed1 = HomeAssistantHandler_Topics_ptr->stateTopic_aLed1;
-    
+
     HomeAssistantHandler_Topics_ptr->setTopic_dLed1 = strdup(HomeAssistantHandler_GetSetTopic("dLed1"));
     HomeAssistantHandler_Topics_ptr->stateTopic_dLed1 = strdup(HomeAssistantHandler_GetStateTopic("dLed1"));
     HomeAssistantHandler_Discovery.setTopic_dLed1 = HomeAssistantHandler_Topics_ptr->setTopic_dLed1;
     HomeAssistantHandler_Discovery.stateTopic_dLed1 = HomeAssistantHandler_Topics_ptr->stateTopic_dLed1;
-    
+
     HomeAssistantHandler_Topics_ptr->setTopic_dLed2 = strdup(HomeAssistantHandler_GetSetTopic("dLed2"));
     HomeAssistantHandler_Topics_ptr->stateTopic_dLed2 = strdup(HomeAssistantHandler_GetStateTopic("dLed2"));
     HomeAssistantHandler_Discovery.setTopic_dLed2 = HomeAssistantHandler_Topics_ptr->setTopic_dLed2;
     HomeAssistantHandler_Discovery.stateTopic_dLed2 = HomeAssistantHandler_Topics_ptr->stateTopic_dLed2;
-    
-
-    
 }
 
 void HomeAssistantHandler_InitLedStates()

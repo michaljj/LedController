@@ -1,7 +1,8 @@
 #ifndef MAINSTATEHANDLER_H
 #define MAINSTATEHANDLER_H
 
-typedef enum {
+typedef enum
+{
     INIT_STA,
     INIT_CONTROLLER,
     DEINIT_STA,
@@ -12,7 +13,6 @@ typedef enum {
     IDLE
 } mainState_t;
 
-
 mainState_t mainStateHandler_getMainState(void);
 void mainStateHandler_setMainState(mainState_t state);
-#endif //MAINSTATEHANDLER_H
+#endif // MAINSTATEHANDLER_H

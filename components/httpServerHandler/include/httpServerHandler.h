@@ -6,5 +6,4 @@
 void httpServerHandler_StartServer(void);
 void httpServerHandler_StopServer(void);
 
-
-#endif //HTTPSERVERHANDLER_H
+#endif // HTTPSERVERHANDLER_H

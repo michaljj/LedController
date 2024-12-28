@@ -12,7 +12,7 @@
 #define LEDHANDLER_DLED1_LED_COUNT 3
 #define LEDHANDLER_OUTPUT_IO_DLED2 2
 #define LEDHANDLER_DLED2_LED_COUNT 3
-#define LEDHANDLER_STRIP_RMT_RES_HZ  (10 * 1000 * 1000)
+#define LEDHANDLER_STRIP_RMT_RES_HZ (10 * 1000 * 1000)
 #define LEDHANDLER_CHANNEL_RED LEDC_CHANNEL_0
 #define LEDHANDLER_CHANNEL_GREEN LEDC_CHANNEL_1
 #define LEDHANDLER_CHANNEL_BLUE LEDC_CHANNEL_2
@@ -31,7 +31,7 @@ typedef enum ledHandler_ledType
 typedef enum ledHandler_ledVal
 {
     RED,
-    GREEN, 
+    GREEN,
     BLUE,
     STATE
 } ledHandler_ledVal_t;
