@@ -1,0 +1,1 @@
+ESP32-S3 based multi strip LED controller project with main led power cutoff and onboard standby supply to keep the comunication running. Integrated MQTT communication with Home assistant. This SW was developed for custom PCB.<img width="1053" height="714" alt="image" src="https://github.com/user-attachments/assets/4d67d04f-9780-46f2-a3dd-349f07b31cf4" />
